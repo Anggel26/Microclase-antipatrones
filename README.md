@@ -1,38 +1,28 @@
-# Taller para la Casa – Antipatrones de Diseño: La Oficina de Visas del Caos
+# Taller: Antipatrones de Diseño - La Oficina de Visas del Caos
 
-**Universidad Distrital Francisco José de Caldas**  
-**Facultad de Ingeniería – Ingeniería de Sistemas**  
-**Asignatura:** Modelos de Programación  
-**Docente:** Bocanegra  
-**Fecha:** Noviembre de 2026  
-
-### Integrantes
-* Eddie Santiago Rondón Capera – 20251020108
-* Luna Alejandra Sandoval Rodríguez – 20241020053
+Implementación y resolución del taller de antipatrones de diseño de software en Java.
 
 ---
 
 ## 1. Parte 1: Cacería de Antipatrones
 
-A continuación se presenta el análisis del sistema heredado del consulado caótico:
-
 | Fragmento | Antipatrón identificado | Síntoma delator | Consecuencia en el consulado |
 |---|---|---|---|
-| **Fragmento 1: La ventanilla de Ramiro** | **God Object (Objeto Todopoderoso)** | La clase `OficinaDeTodo` concentra múltiples responsabilidades en un único método `procesar()`: valida la estructura del pasaporte, procesa el cobro económico, guarda el expediente y envía notificaciones por correo. | Violación flagrante del principio de responsabilidad única (SRP). Si cambia cualquiera de estas reglas o falla el componente (o "se enferma Ramiro"), todo el consulado se paraliza. El código es rígido, no testeable y difícil de mantener. |
-| **Fragmento 2: La tarifa clonada** | **Copy-Paste Programming (Código Duplicado)** | La fórmula base `(50 * meses) + 10` se encuentra copiada textualmente en los tres métodos (`visaTurista`, `visaEstudiante`, `visaTrabajo`). Cada método repite el cálculo en lugar de reutilizarlo o parametrizarlo. | Si cambia la tarifa base consular, se debe recordar editar cada método individualmente. Un error humano o descuido deja tarifas desactualizadas e inconsistentes (como ocurrió en el consulado al olvidar actualizar la de trabajo). |
-| **Fragmento 3: Los números misteriosos** | **Magic Numbers (Números Mágicos)** | Presencia de constantes numéricas sin contexto semántico: tipos `1`, `2`, `3` y rangos de edades `17`, `15`, `31`, `66`, además de factores `0.5` o `1.5` sin nombre explicativo. | El código es ilegible e indescifrable para nuevos desarrolladores. Además, valores no contemplados (como un tipo 9) son rechazados silenciosamente sin dar retroalimentación ni mensajes claros del error. |
-| **Fragmento 4: La cancelación en cadena** | **Acoplamiento Fuerte (Tight Coupling)** | `SolicitudAcoplada` instancia directamente (`new CorreoServicio()`, etc.) y encadena llamadas explícitas a otros subsistemas. | Flujo frágil y dependencias rígidas. Al agregar o modificar avisos, hay que modificar directamente la clase de solicitud. En el caso real, se les olvidó invocar a la caja de pagos y el usuario perdió su dinero de reembolso. |
+| **Fragmento 1: La ventanilla de Ramiro** | **God Object** | La clase `OficinaDeTodo` concentra múltiples responsabilidades en un único método `procesar()`: valida pasaporte, procesa cobro, guarda expediente y envía correo. | Si Ramiro se enferma o falla cualquier tarea, todo el consulado se detiene. El código es rígido y no cumple SRP. |
+| **Fragmento 2: La tarifa clonada** | **Copy-Paste Programming** | La fórmula de cálculo base `(50 * meses) + 10` está duplicada textualmente en los tres métodos de visado (`visaTurista`, `visaEstudiante`, `visaTrabajo`). | Al modificar la tarifa base, hay que editar 3 métodos manualmente. Si uno se olvida, quedan tarifas desactualizadas e inconsistentes. |
+| **Fragmento 3: Los números misteriosos** | **Magic Numbers** | Presencia de constantes numéricas y multiplicadores sin contexto semántico (`1`, `2`, `3`, `17`, `15`, `31`, `66`, `0.5`, `1.5`). | Dificulta la lectura del código, y si entra un tipo inválido (ej. tipo 9), se rechaza en silencio sin explicar la causa. |
+| **Fragmento 4: La cancelación en cadena** | **Acoplamiento Fuerte** | `SolicitudAcoplada` instancia directamente dependencias concretas (`new CorreoServicio()`, etc.) y las llama de forma manual y secuencial. | Si se olvida invocar un servicio (como ocurrió con la caja de pagos), el flujo falla silenciosamente y el usuario pierde su reembolso. |
 
 ---
 
 ## 2. Parte 2: Arquitectura del Rescate
 
-La solución se organizó de manera modular bajo el directorio `src/`, dividida en paquetes según el problema atacado:
+Estructura de paquetes en `src/`:
 
 ```text
 src/
-├── Main.java                          # Ejecución comparativa de los 5 casos de prueba
-├── legacy/                            # Código heredado original (para contraste)
+├── Main.java                          # Ejecución de los 5 casos de prueba comparativos
+├── legacy/                            # Fragmentos heredados originales
 │   ├── CalculadoraDeTarifas.java
 │   ├── CitasServicio.java
 │   ├── CorreoServicio.java
@@ -40,23 +30,23 @@ src/
 │   ├── OficinaDeTodo.java
 │   ├── PagosServicio.java
 │   └── SolicitudAcoplada.java
-└── rescued/                           # Versión refactorizada y libre de antipatrones
-    ├── enums/                         # Solución Fragmento 3 (Enums y constantes)
+└── rescued/                           # Código refactorizado y libre de antipatrones
+    ├── enums/                         # Solución Fragmento 3: Enums y validación clara
     │   ├── EvaluadorRequisitos.java
     │   └── TipoVisa.java
-    ├── observer/                      # Solución Fragmento 4 (Patrón Observer)
+    ├── observer/                      # Solución Fragmento 4: Patrón Observer
     │   ├── AgendaCitas.java
     │   ├── CajaReembolsos.java
     │   ├── CorreoNotificador.java
     │   ├── ObservadorCancelacion.java
     │   └── SolicitudDesacoplada.java
-    ├── srp/                           # Solución Fragmento 1 (Responsabilidad Única)
+    ├── srp/                           # Solución Fragmento 1: Responsabilidad Única
     │   ├── CajaCobro.java
     │   ├── NotificadorCorreo.java
     │   ├── RepositorioExpedientes.java
     │   ├── TramiteVisaServicio.java
     │   └── ValidadorDocumento.java
-    └── strategy/                      # Solución Fragmento 2 (Patrón Strategy)
+    └── strategy/                      # Solución Fragmento 2: Patrón Strategy
         ├── CalculadoraTarifasConsulado.java
         ├── EstrategiaTarifa.java
         ├── TarifaEstudiante.java
@@ -65,28 +55,22 @@ src/
 ```
 
 ### Soluciones aplicadas
-1. **Responsabilidad Única (SRP):** Se dividió `OficinaDeTodo` en componentes especializados (`ValidadorDocumento`, `CajaCobro`, `RepositorioExpedientes`, `NotificadorCorreo`), orquestados por `TramiteVisaServicio`.
-2. **Patrón Strategy:** Se desacopló el cálculo mediante la interfaz `EstrategiaTarifa` implementada por `TarifaTurista`, `TarifaEstudiante` y `TarifaTrabajo`. La clase `CalculadoraTarifasConsulado` concentra la tarifa base como **único punto de cambio**.
-3. **Enum con constantes con nombre:** El enum `TipoVisa` modela los tipos (`TURISTA`, `ESTUDIANTE`, `TRABAJO`), encapsulando sus códigos y límites de edad. Se proporciona validación explícita con mensajes comprensibles si se ingresan tipos no existentes.
-4. **Patrón Observer:** La clase `SolicitudDesacoplada` implementa un sujeto observable que emite eventos a objetos que implementan `ObservadorCancelacion`. De esta forma se notifican `CorreoNotificador`, `AgendaCitas` y `CajaReembolsos` sin acoplamiento directo.
+1. **Responsabilidad Única (SRP):** Descomposición de `OficinaDeTodo` en componentes especializados (`ValidadorDocumento`, `CajaCobro`, `RepositorioExpedientes`, `NotificadorCorreo`), orquestados por `TramiteVisaServicio`.
+2. **Patrón Strategy:** Cálculo desacoplado con la interfaz `EstrategiaTarifa` e implementaciones (`TarifaTurista`, `TarifaEstudiante`, `TarifaTrabajo`). `CalculadoraTarifasConsulado` sirve como **único punto de cambio** de la tarifa base.
+3. **Enums y Constantes con Nombre:** `TipoVisa` modela los visados y sus rangos de edad. `EvaluadorRequisitos` devuelve mensajes comprensibles para códigos inválidos.
+4. **Patrón Observer:** `SolicitudDesacoplada` notifica eventos a `ObservadorCancelacion` (`CorreoNotificador`, `AgendaCitas`, `CajaReembolsos`) sin acoplamiento rígido.
 
 ---
 
 ## 3. Parte 3: Casos de Prueba Ejecutados
 
-### Salida directa en consola de `Main.java`
+Salida por consola al ejecutar `Main`:
 
 ```text
 ===============================================================================
-        UNIVERSIDAD DISTRITAL FRANCISCO JOSE DE CALDAS
-            Facultad de Ingenieria - Ingenieria de Sistemas
-                   Modelos de Programacion
-            Taller para la Casa: Antipatrones de Diseno
+            Taller: Antipatrones de Diseno de Software
                  La Oficina de Visas del Caos (Java)
 ===============================================================================
-Estudiantes: Eddie Santiago Rondon Capera (20251020108)
-             Luna Alejandra Sandoval Rodriguez (20241020053)
-Docente:     Bocanegra
 
 -------------------------------------------------------------------------------
 CASO 1: God Object (OficinaDeTodo vs Clases con Responsabilidad Unica)
@@ -216,18 +200,16 @@ en cadena          | Fuerte           | servicios; olvido de caja de pagos  | (c
 
 ## 4. Reflexión: Cómo evitar caer de nuevo en los antipatrones
 
-Para evitar que el sistema vuelva a deteriorarse en parches sucesivos, la arquitectura implementada se basa en el principio de separación de responsabilidades y en el principio Abierto/Cerrado (OCP). En lugar de centralizar tareas en una sola clase o duplicar código por rapidez, se establecieron contratos claros mediante interfaces (`EstrategiaTarifa`, `ObservadorCancelacion`) y modelos fuertemente tipados (`TipoVisa`). Si en el futuro surge un nuevo tipo de visa, basta con agregar una nueva constante en el enumerador o una nueva implementación de la estrategia de cobro sin tener que alterar el código existente ni reescribir validaciones. De igual manera, si se requiere un nuevo servicio durante la cancelación (por ejemplo, auditoría o emisión de constancias), solo se suscribe un nuevo observador sin tocar la clase `SolicitudDesacoplada`, previniendo efectos secundarios indeseados y garantizando un mantenimiento sostenible en el tiempo.
+Para evitar que el código caiga nuevamente en estos antipatrones, se aplicó el principio de responsabilidad única (SRP) y contratos mediante interfaces (`EstrategiaTarifa`, `ObservadorCancelacion`). Esto permite extender el sistema sin modificar clases existentes (Open/Closed Principle): si en el futuro se incorpora un nuevo visado, se añade una estrategia de tarifa o un valor al enum sin alterar el código que ya funciona. De igual manera, desacoplar las notificaciones con el patrón Observer previene que dependencias rígidas o llamadas manuales olvidadas dejen procesos inconsistentes.
 
 ---
 
 ## 5. Instrucciones de Compilación y Ejecución
 
-Desde una terminal en la raíz del proyecto:
-
 ```bash
-# Compilar los archivos Java en la carpeta bin:
+# Compilar
 javac -d bin src/*.java src/legacy/*.java src/rescued/srp/*.java src/rescued/strategy/*.java src/rescued/enums/*.java src/rescued/observer/*.java
 
-# Ejecutar el programa principal:
+# Ejecutar
 java -cp bin Main
 ```

@@ -20,15 +20,9 @@ public class Main {
 
     private static void imprimirEncabezado() {
         System.out.println("===============================================================================");
-        System.out.println("        UNIVERSIDAD DISTRITAL FRANCISCO JOSE DE CALDAS");
-        System.out.println("            Facultad de Ingenieria - Ingenieria de Sistemas");
-        System.out.println("                   Modelos de Programacion");
-        System.out.println("            Taller para la Casa: Antipatrones de Diseno");
+        System.out.println("            Taller: Antipatrones de Diseno de Software");
         System.out.println("                 La Oficina de Visas del Caos (Java)");
-        System.out.println("===============================================================================");
-        System.out.println("Estudiantes: Eddie Santiago Rondon Capera (20251020108)");
-        System.out.println("             Luna Alejandra Sandoval Rodriguez (20241020053)");
-        System.out.println("Docente:     Bocanegra\n");
+        System.out.println("===============================================================================\n");
     }
 
     private static void probarCaso1GodObject() {
